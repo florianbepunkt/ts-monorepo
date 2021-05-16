@@ -1,0 +1,41 @@
+service: monorepo-exp
+variablesResolutionMode: 20210326
+
+package:
+  individually: true
+
+custom:
+  webpack:
+    webpackConfig: "./webpack.config.js"
+    keepOutputDirectory: true
+    packager: "npm"
+    includeModules:
+      nodeModulesRelativeDir: "../../"
+
+plugins:
+  - serverless-webpack
+  - serverless-pseudo-parameters
+
+provider:
+  name: aws
+  logRetentionInDays: 7
+  memorySize: 128
+  region: ${opt:region, 'eu-central-1'}
+  runtime: nodejs14.x
+  stage: ${opt:stage, 'development'}
+  timeout: 10
+  versionFunctions: false
+  deploymentBucket:
+    blockPublicAccess: true # Prevents public access via ACLs or bucket policies. Default is false
+    maxPreviousDeploymentArtifacts: 3 # On every deployment the framework prunes the bucket to remove artifacts older than this limit. The default is 5
+    serverSideEncryption: AES256 # server-side encryption method
+  httpApi:
+    cors: true
+
+functions:
+  createCodeFromPayload:
+    handler: src/index.handler
+    events:
+      - httpApi:
+          method: "post"
+          path: "/code"
